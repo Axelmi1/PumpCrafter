@@ -1,0 +1,92 @@
+export interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  language_code?: string;
+}
+
+export function initTelegramSDK() {
+  try {
+    // Check if running in Telegram
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
+      const tg = (window as any).Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+      
+      return {
+        initDataRaw: tg.initData || '',
+        user: tg.initDataUnsafe?.user || null,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to initialize Telegram SDK:', error);
+  }
+  
+  // Return mock data for development
+  console.warn('Running in development mode without Telegram');
+  return {
+    initDataRaw: '',
+    user: {
+      id: 123456789,
+      first_name: 'Dev',
+      username: 'devuser',
+    },
+  };
+}
+
+export function getTelegramTheme() {
+  try {
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
+      const tg = (window as any).Telegram.WebApp;
+      return {
+        bgColor: tg.themeParams.bg_color || '#1a1f2e',
+        textColor: tg.themeParams.text_color || '#ffffff',
+        hintColor: tg.themeParams.hint_color || '#6c7a89',
+        linkColor: tg.themeParams.link_color || '#8b7ec8',
+        buttonColor: tg.themeParams.button_color || '#8b7ec8',
+        buttonTextColor: tg.themeParams.button_text_color || '#ffffff',
+      };
+    }
+  } catch (error) {
+    console.error('Failed to get theme:', error);
+  }
+  
+  // Fallback theme for development
+  return {
+    bgColor: '#1a1f2e',
+    textColor: '#ffffff',
+    hintColor: '#6c7a89',
+    linkColor: '#8b7ec8',
+    buttonColor: '#8b7ec8',
+    buttonTextColor: '#ffffff',
+  };
+}
+
+export function getLaunchParams() {
+  try {
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
+      const tg = (window as any).Telegram.WebApp;
+      return {
+        initDataRaw: tg.initData || '',
+        initData: {
+          user: tg.initDataUnsafe?.user || null,
+        },
+      };
+    }
+  } catch (error) {
+    console.error('Failed to get launch params:', error);
+  }
+  
+  return {
+    initDataRaw: '',
+    initData: {
+      user: {
+        id: 123456789,
+        firstName: 'Dev',
+        username: 'devuser',
+      },
+    },
+  };
+}
+
