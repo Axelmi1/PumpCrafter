@@ -1250,6 +1250,21 @@ bot.catch((err) => {
       });
     }
     
+    // Configure Web App menu button
+    try {
+      const webappUrl = env.WEBAPP_URL || 'https://pumpcrafter.vercel.app';
+      await bot.api.setChatMenuButton({
+        menu_button: {
+          type: 'web_app',
+          text: '🚀 Open PumpCrafter',
+          web_app: { url: webappUrl }
+        }
+      });
+      console.log(`✅ Web App menu button configured: ${webappUrl}`);
+    } catch (error) {
+      console.warn('⚠️  Failed to set menu button:', error);
+    }
+    
     console.log("✅ PumpCrafter (Vortex-style) ready. Listening…");
     await bot.start();
   } catch (err) {
