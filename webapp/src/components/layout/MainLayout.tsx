@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { getTelegramTheme } from '../../lib/telegram';
 import { BottomNav } from './BottomNav';
 import { Toast } from '../ui/Toast';
