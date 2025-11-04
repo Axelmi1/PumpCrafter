@@ -9,8 +9,15 @@ import { env } from '../env';
 const app = express();
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://pump-crafter.vercel.app',
+  process.env.WEBAPP_URL || '',
+].filter(Boolean);
+
 app.use(cors({
-  origin: env.WEBAPP_URL || 'http://localhost:5173',
+  origin: allowedOrigins,
   credentials: true,
 }));
 
