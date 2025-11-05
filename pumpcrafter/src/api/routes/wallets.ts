@@ -136,5 +136,28 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// GET /api/debug/user-info - Debug endpoint to check user info
+router.get('/debug/user-info', async (req, res) => {
+  try {
+    const userId = req.telegramUser!.id.toString();
+    const wallets = await listUserWallets(userId);
+    
+    res.json({
+      telegramUserId: req.telegramUser!.id,
+      userIdString: userId,
+      walletCount: wallets.length,
+      wallets: wallets.map(w => ({
+        id: w.id,
+        address: w.address,
+        label: w.label,
+        balance: 'checking...',
+      })),
+    });
+  } catch (error: any) {
+    console.error('Error getting user info:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
 
