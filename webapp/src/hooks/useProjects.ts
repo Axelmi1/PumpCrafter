@@ -100,3 +100,134 @@ export function useLaunchProject() {
   });
 }
 
+// ==================== WALLET HOOKS ====================
+
+export function useWallets() {
+  return useQuery({
+    queryKey: ['wallets'],
+    queryFn: async () => {
+      const { data } = await api.get('/wallets');
+      return data.wallets;
+    },
+  });
+}
+
+export function useCreateWallet() {
+  const queryClient = useQueryClient();
+  const showToast = useAppStore((state) => state.showToast);
+
+  return useMutation({
+    mutationFn: async (label?: string) => {
+      const { data } = await api.post('/wallets', { label });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      showToast('Wallet created successfully!', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error || 'Failed to create wallet', 'error');
+    },
+  });
+}
+
+export function useImportWallet() {
+  const queryClient = useQueryClient();
+  const showToast = useAppStore((state) => state.showToast);
+
+  return useMutation({
+    mutationFn: async ({ privateKey, label }: { privateKey: string; label?: string }) => {
+      const { data } = await api.post('/wallets/import', { privateKey, label });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      showToast('Wallet imported successfully!', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error || 'Failed to import wallet', 'error');
+    },
+  });
+}
+
+export function useDeleteWallet() {
+  const queryClient = useQueryClient();
+  const showToast = useAppStore((state) => state.showToast);
+
+  return useMutation({
+    mutationFn: async (walletId: string) => {
+      await api.delete(`/wallets/${walletId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      showToast('Wallet deleted!', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error || 'Failed to delete wallet', 'error');
+    },
+  });
+}
+
+export function useSetCreatorWallet() {
+  const queryClient = useQueryClient();
+  const showToast = useAppStore((state) => state.showToast);
+
+  return useMutation({
+    mutationFn: async (walletId: string) => {
+      const { data } = await api.post(`/wallets/${walletId}/set-creator`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      showToast('Creator wallet set!', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error || 'Failed to set creator wallet', 'error');
+    },
+  });
+}
+
+// ==================== PORTFOLIO HOOKS ====================
+
+export function usePortfolio() {
+  return useQuery({
+    queryKey: ['portfolio'],
+    queryFn: async () => {
+      const { data } = await api.get('/portfolio');
+      return data.positions || [];
+    },
+    refetchInterval: 10000, // Refetch every 10s for live prices
+  });
+}
+
+export function useTokenPosition(mint?: string) {
+  return useQuery({
+    queryKey: ['portfolio', mint],
+    queryFn: async () => {
+      const { data } = await api.get('/portfolio');
+      return data.positions?.find((p: any) => p.token.mint === mint);
+    },
+    enabled: !!mint,
+    refetchInterval: 10000,
+  });
+}
+
+export function useSellTokens() {
+  const queryClient = useQueryClient();
+  const showToast = useAppStore((state) => state.showToast);
+
+  return useMutation({
+    mutationFn: async ({ mint, percentage }: { mint: string; percentage: number }) => {
+      const { data } = await api.post('/portfolio/sell', { mint, percentage });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      showToast('Tokens sold successfully!', 'success');
+    },
+    onError: (error: any) => {
+      showToast(error.response?.data?.error || 'Failed to sell tokens', 'error');
+    },
+  });
+}
+

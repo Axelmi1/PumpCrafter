@@ -4,7 +4,8 @@ import {
   createWallet,
   importWallet,
   getWalletBalance,
-  deleteWallet 
+  deleteWallet,
+  setCreatorWallet 
 } from '../../features/wallets/service';
 
 const router = Router();
@@ -34,6 +35,26 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /api/wallets/import - Import wallet (must come before POST /)
+router.post('/import', async (req, res) => {
+  try {
+    const userId = req.telegramUser!.id.toString();
+    const { privateKey, label } = req.body;
+    
+    if (!privateKey) {
+      return res.status(400).json({ error: 'Private key is required' });
+    }
+    
+    const wallet = await importWallet(userId, privateKey, label);
+    const balance = await getWalletBalance(wallet.address);
+    
+    res.json({ wallet: { ...wallet, balance } });
+  } catch (error: any) {
+    console.error('Error importing wallet:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/wallets - Create new wallet
 router.post('/', async (req, res) => {
   try {
@@ -44,7 +65,6 @@ router.post('/', async (req, res) => {
     
     // If isCreator flag is set, mark this wallet as creator
     if (isCreator) {
-      const { setCreatorWallet } = await import('../../features/wallets/service');
       wallet = await setCreatorWallet(wallet.id);
     }
     
@@ -57,22 +77,23 @@ router.post('/', async (req, res) => {
   }
 });
 
-// POST /api/wallets/import - Import wallet
-router.post('/import', async (req, res) => {
+// POST /api/wallets/:id/set-creator - Set wallet as creator
+router.post('/:id/set-creator', async (req, res) => {
   try {
     const userId = req.telegramUser!.id.toString();
-    const { privateKey } = req.body;
+    const wallets = await listUserWallets(userId);
+    const wallet = wallets.find(w => w.id === req.params.id);
     
-    if (!privateKey) {
-      return res.status(400).json({ error: 'Private key is required' });
+    if (!wallet) {
+      return res.status(404).json({ error: 'Wallet not found' });
     }
     
-    const wallet = await importWallet(userId, privateKey);
-    const balance = await getWalletBalance(wallet.address);
+    const updatedWallet = await setCreatorWallet(req.params.id);
+    const balance = await getWalletBalance(updatedWallet.address);
     
-    res.json({ wallet: { ...wallet, balance } });
+    res.json({ wallet: { ...updatedWallet, balance } });
   } catch (error: any) {
-    console.error('Error importing wallet:', error);
+    console.error('Error setting creator wallet:', error);
     res.status(500).json({ error: error.message });
   }
 });
