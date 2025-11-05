@@ -118,6 +118,16 @@ export function validateTelegramWebAppData(
     }
     
     console.log('✅ User authenticated:', { id: user.id, username: user.username });
+    
+    // Ensure user exists in database
+    try {
+      const { getOrCreateUser } = await import('../../features/users/service');
+      await getOrCreateUser(user.id, user.username);
+    } catch (error) {
+      console.error('❌ Failed to create/get user:', error);
+      // Continue anyway, user might exist
+    }
+    
     req.telegramUser = user;
     
     next();
