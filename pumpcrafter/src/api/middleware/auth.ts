@@ -62,7 +62,7 @@ function verifyTelegramWebAppData(initData: string, botToken: string): boolean {
   }
 }
 
-export function validateTelegramWebAppData(
+export async function validateTelegramWebAppData(
   req: Request,
   res: Response,
   next: NextFunction
