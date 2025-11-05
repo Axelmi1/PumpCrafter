@@ -12,11 +12,20 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   try {
     const { initDataRaw } = getLaunchParams();
-    if (initDataRaw) {
+    
+    console.log('🔐 Adding auth header:', {
+      hasInitData: !!initDataRaw,
+      length: initDataRaw?.length,
+    });
+    
+    if (initDataRaw && initDataRaw.length > 0) {
       config.headers['x-telegram-init-data'] = initDataRaw;
+      console.log('✅ Auth header added');
+    } else {
+      console.warn('⚠️  No initDataRaw available');
     }
   } catch (error) {
-    console.error('Failed to add auth header:', error);
+    console.error('❌ Failed to add auth header:', error);
   }
   return config;
 });
