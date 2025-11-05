@@ -121,11 +121,13 @@ export async function validateTelegramWebAppData(
     
     // Ensure user exists in database
     try {
+      console.log(`📝 Creating user in DB with ID: ${user.id} (type: ${typeof user.id})`);
       const { getOrCreateUser } = await import('../../features/users/service');
-      await getOrCreateUser(user.id, user.username);
-    } catch (error) {
-      console.error('❌ Failed to create/get user:', error);
-      // Continue anyway, user might exist
+      const dbUser = await getOrCreateUser(user.id, user.username);
+      console.log(`✅ DB user ready:`, { id: dbUser.id, telegramId: dbUser.telegramId });
+    } catch (error: any) {
+      console.error('❌ Failed to create/get user:', error?.message || error);
+      throw error; // Don't continue if user creation fails
     }
     
     req.telegramUser = user;
