@@ -21,8 +21,8 @@ export function PortfolioPage() {
   }
 
   // Calculate total P&L
-  const totalInvested = positions.reduce((sum, p) => sum + (p.invested || 0), 0);
-  const totalValue = positions.reduce((sum, p) => sum + (p.currentValue || 0), 0);
+  const totalInvested = positions.reduce((sum: number, p: any) => sum + (p.invested || 0), 0);
+  const totalValue = positions.reduce((sum: number, p: any) => sum + (p.currentValue || 0), 0);
   const totalPnl = totalValue - totalInvested;
   const totalPnlPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
 
