@@ -7,6 +7,7 @@ import {
   deleteWallet,
   setCreatorWallet 
 } from '../../features/wallets/service';
+import { prisma } from '../../infra/db';
 
 const router = Router();
 
@@ -155,6 +156,49 @@ router.get('/debug/user-info', async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error getting user info:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/wallets/migrate - Migrate wallets from old user ID to current user
+router.post('/migrate', async (req, res) => {
+  try {
+    const currentUserId = req.telegramUser!.id.toString();
+    const { fromUserId } = req.body;
+    
+    if (!fromUserId) {
+      return res.status(400).json({ error: 'fromUserId is required' });
+    }
+    
+    // Get wallets from old user
+    const oldWallets = await listUserWallets(fromUserId);
+    
+    if (oldWallets.length === 0) {
+      return res.json({ message: 'No wallets found for migration' });
+    }
+    
+    // Migrate each wallet to current user
+    const migratedWallets = [];
+    for (const wallet of oldWallets) {
+      const updated = await prisma.wallet.update({
+        where: { id: wallet.id },
+        data: { userId: currentUserId },
+      });
+      migratedWallets.push(updated);
+      console.log(`✅ Migrated wallet ${wallet.address} to user ${currentUserId}`);
+    }
+    
+    res.json({
+      success: true,
+      migratedCount: migratedWallets.length,
+      wallets: migratedWallets.map(w => ({
+        id: w.id,
+        address: w.address,
+        label: w.label,
+      })),
+    });
+  } catch (error: any) {
+    console.error('Error migrating wallets:', error);
     res.status(500).json({ error: error.message });
   }
 });
