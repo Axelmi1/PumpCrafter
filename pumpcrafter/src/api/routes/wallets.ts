@@ -61,20 +61,13 @@ router.post('/', async (req, res) => {
 router.post('/import', async (req, res) => {
   try {
     const userId = req.telegramUser!.id.toString();
-    const { privateKey, label, isCreator } = req.body;
+    const { privateKey } = req.body;
     
     if (!privateKey) {
       return res.status(400).json({ error: 'Private key is required' });
     }
     
-    const wallet = await importWallet(userId, privateKey, label);
-    
-    // If isCreator flag is set, mark this wallet as creator
-    if (isCreator) {
-      const { setCreatorWallet } = await import('../../features/wallets/service');
-      await setCreatorWallet(wallet.id);
-    }
-    
+    const wallet = await importWallet(userId, privateKey);
     const balance = await getWalletBalance(wallet.address);
     
     res.json({ wallet: { ...wallet, balance } });
@@ -118,28 +111,6 @@ router.delete('/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error: any) {
     console.error('Error deleting wallet:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// POST /api/wallets/:id/set-creator - Set wallet as creator
-router.post('/:id/set-creator', async (req, res) => {
-  try {
-    const userId = req.telegramUser!.id.toString();
-    const wallets = await listUserWallets(userId);
-    const wallet = wallets.find(w => w.id === req.params.id);
-    
-    if (!wallet) {
-      return res.status(404).json({ error: 'Wallet not found' });
-    }
-    
-    const { setCreatorWallet } = await import('../../features/wallets/service');
-    const updatedWallet = await setCreatorWallet(req.params.id);
-    const balance = await getWalletBalance(updatedWallet.address);
-    
-    res.json({ wallet: { ...updatedWallet, balance } });
-  } catch (error: any) {
-    console.error('Error setting creator wallet:', error);
     res.status(500).json({ error: error.message });
   }
 });
