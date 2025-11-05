@@ -14,6 +14,10 @@ export function initTelegramSDK() {
       tg.ready();
       tg.expand();
       
+      console.log('✅ Telegram SDK initialized');
+      console.log('User from WebApp:', tg.initDataUnsafe?.user);
+      console.log('InitData available:', !!tg.initData);
+      
       return {
         initDataRaw: tg.initData || '',
         user: tg.initDataUnsafe?.user || null,
@@ -24,14 +28,10 @@ export function initTelegramSDK() {
   }
   
   // Return mock data for development
-  console.warn('Running in development mode without Telegram');
+  console.warn('⚠️  Running in development mode without Telegram SDK');
   return {
     initDataRaw: '',
-    user: {
-      id: 123456789,
-      first_name: 'Dev',
-      username: 'devuser',
-    },
+    user: null,
   };
 }
 
@@ -67,10 +67,18 @@ export function getLaunchParams() {
   try {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
       const tg = (window as any).Telegram.WebApp;
+      const initDataRaw = tg.initData || '';
+      const user = tg.initDataUnsafe?.user || null;
+      
+      console.log('✅ Launch params from Telegram:');
+      console.log('  - User ID:', user?.id);
+      console.log('  - Username:', user?.username);
+      console.log('  - initDataRaw length:', initDataRaw.length);
+      
       return {
-        initDataRaw: tg.initData || '',
+        initDataRaw,
         initData: {
-          user: tg.initDataUnsafe?.user || null,
+          user,
         },
       };
     }
@@ -78,14 +86,11 @@ export function getLaunchParams() {
     console.error('Failed to get launch params:', error);
   }
   
+  console.warn('⚠️  No Telegram WebApp detected - using fallback');
   return {
     initDataRaw: '',
     initData: {
-      user: {
-        id: 123456789,
-        firstName: 'Dev',
-        username: 'devuser',
-      },
+      user: null,
     },
   };
 }

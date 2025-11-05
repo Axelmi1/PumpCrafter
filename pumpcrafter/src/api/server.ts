@@ -29,6 +29,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Debug endpoint (no auth required)
+app.get('/debug/auth', (req, res) => {
+  const initData = req.headers['x-telegram-init-data'] as string;
+  res.json({
+    hasInitData: !!initData,
+    initDataLength: initData?.length || 0,
+    nodeEnv: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Auth middleware for all /api routes
 app.use('/api', validateTelegramWebAppData);
 

@@ -69,12 +69,20 @@ export function validateTelegramWebAppData(
 ) {
   const initData = req.headers['x-telegram-init-data'] as string;
   
+  // Log auth attempt for debugging
+  console.log('🔐 Auth attempt:', {
+    hasInitData: !!initData,
+    initDataLength: initData?.length,
+    nodeEnv: process.env.NODE_ENV,
+  });
+  
   // Development mode: skip auth if no initData provided
   if (!initData) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️  Skipping Telegram auth in development mode');
+      console.warn('⚠️  Skipping Telegram auth in development mode - NO initData');
+      // In dev mode without initData, we still need a user. Set a placeholder that will be replaced by actual user
       req.telegramUser = {
-        id: 123456789,
+        id: 0, // Will be overridden when user calls API
         first_name: 'Dev',
         username: 'devuser',
       } as any;
@@ -87,6 +95,7 @@ export function validateTelegramWebAppData(
   const isValid = verifyTelegramWebAppData(initData, env.TELEGRAM_TOKEN);
   
   if (!isValid) {
+    console.error('❌ Invalid initData signature');
     return res.status(401).json({ error: 'Unauthorized: Invalid initData' });
   }
   
@@ -100,6 +109,7 @@ export function validateTelegramWebAppData(
     }
     
     const user = JSON.parse(userJson) as TelegramUser;
+    console.log('✅ User authenticated:', { id: user.id, username: user.username });
     req.telegramUser = user;
     
     next();
