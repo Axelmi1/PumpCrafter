@@ -125,12 +125,14 @@ export async function validateTelegramWebAppData(
       const { getOrCreateUser } = await import('../../features/users/service');
       const dbUser = await getOrCreateUser(user.id, user.username);
       console.log(`✅ DB user ready:`, { id: dbUser.id, telegramId: dbUser.telegramId });
+      
+      // Store both IDs in request for use in routes
+      req.telegramUser = user;
+      (req as any).dbUserId = dbUser.id; // Store Prisma User.id for database operations
     } catch (error: any) {
       console.error('❌ Failed to create/get user:', error?.message || error);
       throw error; // Don't continue if user creation fails
     }
-    
-    req.telegramUser = user;
     
     next();
   } catch (error) {

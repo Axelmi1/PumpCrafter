@@ -13,7 +13,10 @@ const router = Router();
 // GET /api/wallets - List user wallets
 router.get('/', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const wallets = await listUserWallets(userId);
     
     // Fetch balances for all wallets
@@ -38,7 +41,10 @@ router.get('/', async (req, res) => {
 // POST /api/wallets/import - Import wallet (must come before POST /)
 router.post('/import', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const { privateKey, label } = req.body;
     
     if (!privateKey) {
@@ -58,7 +64,10 @@ router.post('/import', async (req, res) => {
 // POST /api/wallets - Create new wallet
 router.post('/', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const { label, isCreator } = req.body;
     
     let wallet = await createWallet(userId, label);
@@ -80,7 +89,10 @@ router.post('/', async (req, res) => {
 // POST /api/wallets/:id/set-creator - Set wallet as creator
 router.post('/:id/set-creator', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const wallets = await listUserWallets(userId);
     const wallet = wallets.find(w => w.id === req.params.id);
     
@@ -101,7 +113,10 @@ router.post('/:id/set-creator', async (req, res) => {
 // GET /api/wallets/:id/balance - Get wallet balance
 router.get('/:id/balance', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const wallets = await listUserWallets(userId);
     const wallet = wallets.find(w => w.id === req.params.id);
     
@@ -120,7 +135,10 @@ router.get('/:id/balance', async (req, res) => {
 // DELETE /api/wallets/:id - Delete wallet
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const wallets = await listUserWallets(userId);
     const wallet = wallets.find(w => w.id === req.params.id);
     
@@ -139,7 +157,10 @@ router.delete('/:id', async (req, res) => {
 // GET /api/debug/user-info - Debug endpoint to check user info
 router.get('/debug/user-info', async (req, res) => {
   try {
-    const userId = req.telegramUser!.id.toString();
+    const userId = (req as any).dbUserId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in request' });
+    }
     const wallets = await listUserWallets(userId);
     
     res.json({
